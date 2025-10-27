@@ -1,67 +1,51 @@
-
-import pandas as pd
-from IPython.display import display
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 def whats_in_my_data(df, target_col=None):
-    """
-    High-level EDA: shape, data types, missing values, column types,
-    summary statistics, target distribution with counts & percentages,
-    and numeric correlation matrix.
-    """
-    
-    # 1. Dataset shape
-    display("Dataset shape: " + str(df.shape))
-    
-    # 2. Column data types
-    display("Column data types:")
-    display(df.dtypes)
-    
-    # 3. Missing Value Count
+
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from IPython.display import display
+
+    # Preview first few rows
+    print("First 5 rows of the dataset:")
+    display(df.head())
+
+    # Shape and column types
+    print(f"\nDataset shape: {df.shape}")
+    print("\nColumn counts by type:")
+    print(df.dtypes.value_counts())
+
+    # Missing values
     missing = df.isnull().sum()
     if missing.sum() == 0:
-        display("No missing values found.")
+        print("\nNo missing values found.")
     else:
-        display("Missing values per column:")
-        display(missing)
-    
-    # 4. Count by Column Data Types
-    numeric_cols = df.select_dtypes(include=['int64','float64']).columns.tolist()
-    cat_cols = df.select_dtypes(include='object').columns.tolist()
-    datetime_cols = df.select_dtypes(include=['datetime64', 'datetime64[ns]']).columns.tolist()
-    
-    display(f"Number of numeric columns: {len(numeric_cols)}")
-    display(f"Number of categorical columns: {len(cat_cols)}")
-    display(f"Number of datetime columns: {len(datetime_cols)}")
-    
-    # 5. Basic Statistics
-    if numeric_cols:
-        display("Numeric columns summary:")
-        display(df[numeric_cols].describe().T)
-    
-    if cat_cols:
-        display("Categorical columns summary:")
-        display(df[cat_cols].describe())
-    
-    # 6. Target Metric distribution with counts and percentages
+        print("\nMissing values per column:")
+        print(missing)
+
+    # Duplicates
+    num_duplicates = df.duplicated().sum()
+    if num_duplicates > 0:
+        print(f"\n⚠️ Found {num_duplicates} duplicate rows.")
+    else:
+        print("\nNo duplicate rows found.")
+
+    # Target distribution
     if target_col and target_col in df.columns:
         plt.figure(figsize=(6,4))
-        ax = sns.countplot(data=df, x=target_col)
-        plt.title(f"{target_col} distribution")
+        ax = sns.countplot(x=target_col, data=df)
+        plt.title(f"Distribution of Target: {target_col}")  # <-- Added title
         total = len(df)
-        # Add count and percentage labels on bars
         for p in ax.patches:
             count = int(p.get_height())
-            pct = count / total * 100
-            ax.annotate(f'{count} ({pct:.1f}%)', 
+            percentage = count / total * 100
+            ax.annotate(f'{count} ({percentage:.1f}%)', 
                         (p.get_x() + p.get_width() / 2., p.get_height()), 
                         ha='center', va='bottom')
         plt.show()
-    elif target_col:
-        print(f"Warning: target column '{target_col}' not found in dataset.")
-    
-    # 7. Correlation matrix for numeric columns
-    if numeric_cols:
-        display("Correlation matrix:")
-        display(df[numeric_cols].corr())
+
+    # Correlation heatmap for numeric columns
+    numeric_cols = df.select_dtypes(include='number')
+    if not numeric_cols.empty:
+        plt.figure(figsize=(10,8))
+        sns.heatmap(numeric_cols.corr(), annot=True, fmt=".2f", cmap='coolwarm')
+        plt.title("Correlation Heatmap")
+        plt.show()
