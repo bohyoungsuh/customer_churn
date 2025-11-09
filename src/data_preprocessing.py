@@ -1,12 +1,12 @@
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, roc_auc_score
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
 
 def preprocess_data(df, target_col = None):
     
@@ -62,7 +62,11 @@ def preprocess_data(df, target_col = None):
         remainder='passthrough' # Pass through any unlisted columns
     )
     
-    print("--- Data Preprocessing Complete ---")
+    print("--- Preprocessor Defined ---")
     
-    return X, y, preprocessor
+    print("\n--- Train Test Split ---")
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+    return X_train, X_test, y_train, y_test, preprocessor
 
