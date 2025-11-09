@@ -4,24 +4,50 @@ def whats_in_my_data(df, target_col=None):
     import seaborn as sns
     from IPython.display import display
 
-    # Preview first few rows
+    # 1. Preview first few rows
     print("First 5 rows of the dataset:")
     display(df.head())
 
-    # Shape and column types
+    # 2. Shape and column types
     print(f"\nDataset shape: {df.shape}")
     print("\nColumn counts by type:")
     print(df.dtypes.value_counts())
 
-    # Missing values
-    missing = df.isnull().sum()
-    if missing.sum() == 0:
-        print("\nNo missing values found.")
-    else:
-        print("\nMissing values per column:")
-        print(missing)
+    # 3. View Data Info
+    print("\n--- Data Info ---")
+    df.info()
+    
+    # 4. Numerical Summary
+    print("\n--- Numerical Columns Summary ---")
+    print(df.describe())
 
-    # Duplicates
+
+    # 5. Missing Values Check
+    print(f"\n--- Data Quality Check ---")    
+    # Check for standard NaN missing values
+    missing_nan = df.isnull().sum()
+    missing_nan = missing_nan[missing_nan > 0] # Filter to only columns with missing values
+    if missing_nan.empty:
+        print("No standard NaN (null) missing values found.")
+    else:
+        print("\nStandard NaN (null) missing values per column:")
+        print(missing_nan)
+
+    # Check for empty spaces ' ' in object columns
+    print("\nChecking for empty spaces (' ') in object-type columns...")
+    empty_spaces_found = False
+    # Iterate only through object columns, as ' ' won't exist in numeric types
+    for column in df.select_dtypes(include=['object']).columns:
+        # Use .sum() on the boolean series
+        empty_spaces_count = (df[column] == ' ').sum()
+        if empty_spaces_count > 0:
+            print(f"Column '{column}': Found {empty_spaces_count} rows with empty spaces.")
+            empty_spaces_found = True
+            
+    if not empty_spaces_found:
+        print("No empty spaces found in object columns.")
+
+    # 6. Duplicates
     num_duplicates = df.duplicated().sum()
     if num_duplicates > 0:
         print(f"\n⚠️ Found {num_duplicates} duplicate rows.")
@@ -42,7 +68,7 @@ def whats_in_my_data(df, target_col=None):
                         ha='center', va='bottom')
         plt.show()
 
-    # Correlation heatmap for numeric columns
+    # 7. Correlation heatmap for numeric columns
     numeric_cols = df.select_dtypes(include='number')
     if not numeric_cols.empty:
         plt.figure(figsize=(10,8))
